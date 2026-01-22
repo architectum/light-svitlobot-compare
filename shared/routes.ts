@@ -1,0 +1,69 @@
+import { z } from 'zod';
+import { locations, events } from './schema';
+
+export const errorSchemas = {
+  internal: z.object({
+    message: z.string(),
+  }),
+  notFound: z.object({
+    message: z.string(),
+  }),
+};
+
+export const api = {
+  locations: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/locations',
+      responses: {
+        200: z.array(z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>()),
+      },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/locations/:id',
+      responses: {
+        200: z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>(),
+        404: errorSchemas.notFound,
+      },
+    },
+    scan: {
+      method: 'POST' as const,
+      path: '/api/locations/:id/scan',
+      responses: {
+        200: z.object({
+          success: z.boolean(),
+          message: z.string(),
+          newEventsCount: z.number(),
+        }),
+        404: errorSchemas.notFound,
+        500: errorSchemas.internal,
+      },
+    },
+    scanAll: {
+      method: 'POST' as const,
+      path: '/api/scan-all',
+      responses: {
+        200: z.object({
+          success: z.boolean(),
+          message: z.string(),
+          totalNewEvents: z.number(),
+        }),
+        500: errorSchemas.internal,
+      },
+    }
+  },
+};
+
+// Helper for frontend
+export function buildUrl(path: string, params?: Record<string, string | number>): string {
+  let url = path;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (url.includes(`:${key}`)) {
+        url = url.replace(`:${key}`, String(value));
+      }
+    });
+  }
+  return url;
+}
