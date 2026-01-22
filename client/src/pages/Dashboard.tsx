@@ -3,9 +3,10 @@ import { Layout } from "@/components/Layout";
 import { LocationCard } from "@/components/LocationCard";
 import { useLocations, useScanAll } from "@/hooks/use-locations";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Search, Loader2 } from "lucide-react";
+import { RefreshCw, Search, Loader2, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
+import { api } from "@shared/routes";
 
 export default function Dashboard() {
   const { data: locations, isLoading } = useLocations();
@@ -29,24 +30,35 @@ export default function Dashboard() {
             </p>
           </div>
           
-          <Button 
-            size="lg"
-            onClick={() => scanAll()} 
-            disabled={isScanning}
-            className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Оновлення...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-5 w-5" />
-                Оновити Всі
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline"
+              size="lg"
+              onClick={() => window.open(api.locations.downloadAll.path, '_blank')}
+              className="border-border/60 hover:bg-secondary transition-all"
+            >
+              <Download className="mr-2 h-5 w-5" />
+              Скачати JSON
+            </Button>
+            <Button 
+              size="lg"
+              onClick={() => scanAll()} 
+              disabled={isScanning}
+              className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
+            >
+              {isScanning ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Оновлення...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-5 w-5" />
+                  Оновити Всі
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

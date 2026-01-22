@@ -4,9 +4,10 @@ import { useLocation, useScanLocation } from "@/hooks/use-locations";
 import { EventTimeline } from "@/components/EventTimeline";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info } from "lucide-react";
+import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Download } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
+import { api, buildUrl } from "@shared/routes";
 
 export default function LocationDetails() {
   const [match, params] = useRoute("/location/:id");
@@ -42,17 +43,31 @@ export default function LocationDetails() {
   const latestEvent = location.events && location.events.length > 0 ? location.events[0] : null;
   const isOnline = latestEvent?.isLightOn ?? false;
 
+  const downloadUrl = buildUrl(api.locations.downloadOne.path, { id });
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Navigation */}
-        <Button 
-          variant="ghost" 
-          onClick={() => setLocation("/")} 
-          className="pl-0 hover:pl-2 transition-all text-muted-foreground hover:text-primary"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Назад до списку
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={() => setLocation("/")} 
+            className="pl-0 hover:pl-2 transition-all text-muted-foreground hover:text-primary"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" /> Назад до списку
+          </Button>
+
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(downloadUrl, '_blank')}
+            className="border-border/60 hover:bg-secondary"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            JSON
+          </Button>
+        </div>
 
         {/* Header Card */}
         <div className="bg-card rounded-3xl border shadow-sm p-6 md:p-8 relative overflow-hidden">
