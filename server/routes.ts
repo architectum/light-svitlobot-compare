@@ -89,5 +89,30 @@ export async function registerRoutes(
     }
   });
 
+  app.get(api.locations.downloadAll.path, async (req, res) => {
+    try {
+      const locations = await storage.getLocations();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', 'attachment; filename=all_locations.json');
+      res.send(JSON.stringify(locations, null, 2));
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to generate JSON" });
+    }
+  });
+
+  app.get(api.locations.downloadOne.path, async (req, res) => {
+    try {
+      const location = await storage.getLocation(Number(req.params.id));
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=location_${location.id}.json`);
+      res.send(JSON.stringify(location, null, 2));
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to generate JSON" });
+    }
+  });
+
   return httpServer;
 }

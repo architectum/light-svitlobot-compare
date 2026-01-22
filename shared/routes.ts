@@ -51,6 +51,21 @@ export const api = {
         }),
         500: errorSchemas.internal,
       },
+    },
+    downloadAll: {
+      method: 'GET' as const,
+      path: '/api/download/all',
+      responses: {
+        200: z.any(),
+      },
+    },
+    downloadOne: {
+      method: 'GET' as const,
+      path: '/api/download/:id',
+      responses: {
+        200: z.any(),
+        404: errorSchemas.notFound,
+      },
     }
   },
 };
