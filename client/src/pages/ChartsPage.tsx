@@ -152,7 +152,7 @@ export default function ChartsPage() {
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">Порівняльні Графіки</h1>
           <p className="text-muted-foreground mt-2">
-            Аналіз наявності світла за останні 3 доби у порівнянні з еталонною адресою.
+            Аналіз наявності світла за останні 3 доби у порівнянні з просп. Берестейський 121.
           </p>
         </div>
 

@@ -58,7 +58,7 @@ export default function LocationDetails() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Назад до списку
           </Button>
 
-          <Button 
+          {/* <Button 
             variant="outline"
             size="sm"
             onClick={() => window.open(downloadUrl, '_blank')}
@@ -66,7 +66,7 @@ export default function LocationDetails() {
           >
             <Download className="mr-2 h-4 w-4" />
             JSON
-          </Button>
+          </Button> */}
         </div>
 
         {/* Header Card */}

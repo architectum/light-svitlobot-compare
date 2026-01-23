@@ -24,14 +24,14 @@ export default function Dashboard() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground">Моніторинг Локацій</h1>
+            <h1 className="text-3xl font-display font-bold text-foreground">Дані зі світлоботів навколо Берестейський просп. 121</h1>
             <p className="text-muted-foreground mt-2">
-              Слідкуйте за станом електроенергії на ваших об'єктах у реальному часі.
+              Слідкуйте за станом електроенергії навколо і порівнюйте реальні відключення на вкладці "Графіки" у реальному часі.
             </p>
           </div>
           
           <div className="flex gap-3">
-            <Button 
+            {/* <Button 
               variant="outline"
               size="lg"
               onClick={() => window.open(api.locations.downloadAll.path, '_blank')}
@@ -39,7 +39,7 @@ export default function Dashboard() {
             >
               <Download className="mr-2 h-5 w-5" />
               Скачати JSON
-            </Button>
+            </Button> */}
             <Button 
               size="lg"
               onClick={() => scanAll()} 
