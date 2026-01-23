@@ -26,6 +26,10 @@ export function parseInitialFile(content: string): InsertLocation[] {
 
     const numberStr = parts[1];
     const address = parts[2].replace(/\*\*/g, ""); // Remove bold markdown
+    
+    // Skip header or divider rows that might have been picked up
+    if (address === "Адреса" || address === ":---") continue;
+    
     const currentStatusRaw = parts[3];
     const group = parts[4] === "—" ? null : parts[4];
     const channelName = parts[5];
@@ -93,11 +97,11 @@ export async function scrapeLocation(location: LocationWithEvents) {
 
     const timestamp = new Date(dateStr);
     
-    // Filter last 5 days
-    const fiveDaysAgo = new Date();
-    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+    // Filter last 10 days
+    const tenDaysAgo = new Date();
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
     
-    if (timestamp < fiveDaysAgo) continue;
+    if (timestamp < tenDaysAgo) continue;
 
     // Check duplicate
     if (existingTimestamps.has(timestamp.getTime())) continue;
