@@ -35,6 +35,17 @@ export function Layout({ children }: LayoutProps) {
               >
                 Дашборд
               </Link>
+              <Link 
+                href="/charts" 
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  location === "/charts" 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                Графіки
+              </Link>
             </nav>
           </div>
         </div>

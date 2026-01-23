@@ -114,5 +114,14 @@ export async function registerRoutes(
     }
   });
 
+  app.get(api.locations.charts.path, async (req, res) => {
+    try {
+      const locations = await storage.getLocations();
+      res.json(locations);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to fetch chart data" });
+    }
+  });
+
   return httpServer;
 }

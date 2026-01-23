@@ -66,6 +66,13 @@ export const api = {
         200: z.any(),
         404: errorSchemas.notFound,
       },
+    },
+    charts: {
+      method: 'GET' as const,
+      path: '/api/charts-data',
+      responses: {
+        200: z.array(z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>()),
+      },
     }
   },
 };
