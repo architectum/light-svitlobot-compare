@@ -1,14 +1,14 @@
 import { useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { useLocations } from "@/hooks/use-locations";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore } from "date-fns";
@@ -88,67 +88,109 @@ export default function ChartsPage() {
       refStatus: chartData?.refStatus?.[idx] ?? 0
     }));
 
+    const allLocations = chartData?.locations ?? [];
+    const markerPositions = allLocations.map((loc, idx) => {
+      const seed = (loc.id ?? idx) * 37;
+      const x = 12 + (seed % 70);
+      const y = 12 + ((seed * 3) % 70);
+      return { id: loc.id, x, y };
+    });
+    const referenceId = chartData?.locations.find((loc) => loc.isReference)?.id;
+
     return (
-      <Card key={location.id} className="overflow-hidden">
-        <CardHeader className="bg-muted/30 py-3">
-          <CardTitle className="text-base font-medium flex items-center justify-between">
+      <Card key={location.id} className="overflow-hidden border-border/60 shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-slate-50 to-white py-4">
+          <CardTitle className="text-base font-semibold flex flex-wrap items-center justify-between gap-2">
             <span>{location.address} {location.group ? `(Група ${location.group})` : ""}</span>
-            {isMainRef && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Еталон</span>}
+            {isMainRef && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Еталон</span>}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0 h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-              <XAxis 
-                dataKey="time" 
-                fontSize={10} 
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                interval={Math.floor(data.length / 6)}
-              />
-              <YAxis 
-                domain={[0, 1]} 
-                ticks={[0, 1]} 
-                fontSize={10}
-                tick={{ fill: 'hsl(var(--muted-foreground))' }}
-              />
-              <Tooltip 
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
-              />
-              {/* Reference layer (Beresterskyi 121-B) */}
-              {!isMainRef && (
-                <Area
-                  type="stepAfter"
-                  dataKey="refStatus"
-                  stroke="#ef4444"
-                  fill="#ef4444"
-                  fillOpacity={0.1}
-                  strokeWidth={1}
-                  isAnimationActive={false}
-                  name="Берестейський 121-Б (Еталон)"
-                />
-              )}
-              {/* Main status layer */}
-              <Area
-                type="stepAfter"
-                dataKey="status"
-                stroke="#22c55e"
-                fill="#22c55e"
-                fillOpacity={0.4}
-                strokeWidth={2}
-                name="Наявність світла"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <CardContent className="p-4">
+          <div className="grid gap-4 md:grid-cols-[1fr_auto] items-stretch">
+            <div className="h-56 md:h-64 rounded-2xl border border-border/50 bg-white">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(15,23,42,0.08)" />
+                  <XAxis 
+                    dataKey="time" 
+                    fontSize={10} 
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    interval={Math.floor(data.length / 6)}
+                  />
+                  <YAxis 
+                    domain={[0, 1]} 
+                    ticks={[0, 1]} 
+                    fontSize={10}
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                  />
+                  {/* Reference layer (Beresterskyi 121-B) */}
+                  {!isMainRef && (
+                    <Area
+                      type="stepAfter"
+                      dataKey="refStatus"
+                      stroke="#f97316"
+                      fill="#f97316"
+                      fillOpacity={0.15}
+                      strokeWidth={1}
+                      isAnimationActive={false}
+                      name="Берестейський 121-Б (Еталон)"
+                    />
+                  )}
+                  {/* Main status layer */}
+                  <Area
+                    type="stepAfter"
+                    dataKey="status"
+                    stroke="#2563eb"
+                    fill="#2563eb"
+                    fillOpacity={0.35}
+                    strokeWidth={2}
+                    name="Наявність світла"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="h-56 md:h-64 aspect-square rounded-2xl border border-border/60 bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-70" style={{
+                backgroundImage: "linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px), linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px)",
+                backgroundSize: "24px 24px",
+              }} />
+              <div className="absolute inset-0" aria-hidden>
+                {markerPositions.map((marker) => {
+                  const isReference = marker.id === referenceId;
+                  const isCurrent = marker.id === location.id;
+                  const sizeClass = isReference || isCurrent ? "h-3.5 w-3.5" : "h-2.5 w-2.5";
+                  const colorClass = isReference
+                    ? "bg-red-500"
+                    : isCurrent
+                      ? "bg-emerald-500"
+                      : "bg-slate-400";
+                  return (
+                    <span
+                      key={marker.id}
+                      className={`absolute ${sizeClass} ${colorClass} rounded-full shadow-[0_0_0_4px_rgba(255,255,255,0.8)]`}
+                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                    />
+                  );
+                })}
+              </div>
+              <div className="absolute bottom-3 left-3 text-[11px] font-semibold text-muted-foreground bg-white/80 px-2 py-1 rounded-full border border-border/60">
+                Мапа локацій
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
   };
 
   return (
-    <Layout>
-      <div className="space-y-8">
+      <Layout>
+      <div className="space-y-8 max-w-none">
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground">Порівняльні Графіки</h1>
           <p className="text-muted-foreground mt-2">
@@ -174,7 +216,7 @@ export default function ChartsPage() {
               <div className="w-2 h-6 bg-muted-foreground/30 rounded-full" />
               Інші локації
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {otherLocations.map(loc => renderChart(loc))}
             </div>
           </div>

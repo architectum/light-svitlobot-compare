@@ -1,6 +1,6 @@
 import { Link } from "wouter";
-import { MapPin, Clock, ArrowRight, Activity } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Clock, ArrowRight, Activity } from "lucide-react";
+import { formatDistanceToNow, formatDistanceStrict } from "date-fns";
 import { uk } from "date-fns/locale";
 import { LocationWithEvents } from "@/hooks/use-locations";
 import { StatusBadge } from "./StatusBadge";
@@ -14,6 +14,43 @@ export function LocationCard({ location }: LocationCardProps) {
   // Determine current status from the latest event if available
   const latestEvent = location.events && location.events.length > 0 ? location.events[0] : null;
   const isOnline = latestEvent?.isLightOn ?? false;
+  const recentEvents = location.events ? [...location.events] : [];
+
+  const getRecentPeriods = () => {
+    if (recentEvents.length === 0) return [];
+    const sorted = recentEvents.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+    const now = new Date();
+    const currentStatus = sorted[0].isLightOn;
+    const currentStart = new Date(sorted[0].timestamp);
+    const periods = [
+      {
+        isLightOn: currentStatus,
+        start: currentStart,
+        end: now,
+      },
+    ];
+
+    let index = 1;
+    while (index < sorted.length && sorted[index].isLightOn === currentStatus) {
+      index += 1;
+    }
+
+    if (index < sorted.length) {
+      const previousStatus = sorted[index].isLightOn;
+      const previousStart = new Date(sorted[index].timestamp);
+      periods.push({
+        isLightOn: previousStatus,
+        start: previousStart,
+        end: currentStart,
+      });
+    }
+
+    return periods;
+  };
+
+  const recentPeriods = getRecentPeriods();
   
   return (
     <div className="group bg-card hover:bg-gradient-to-br hover:from-card hover:to-primary/5 border border-border/50 hover:border-primary/20 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col h-full">
@@ -46,6 +83,28 @@ export function LocationCard({ location }: LocationCardProps) {
           <p className="text-sm font-medium text-foreground">
             {location.currentStatusRaw || "Очікування даних..."}
           </p>
+        </div>
+
+        <div className="rounded-xl border border-border/60 bg-white/70 p-3">
+          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            Останні 2 періоди
+          </p>
+          <div className="space-y-2">
+            {recentPeriods.length > 0 ? (
+              recentPeriods.map((period, index) => (
+                <div key={`${period.start.toISOString()}-${index}`} className="flex items-center justify-between text-xs">
+                  <span className={period.isLightOn ? "text-emerald-600" : "text-rose-500"}>
+                    {period.isLightOn ? "Світло" : "Немає"}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {formatDistanceStrict(period.start, period.end, { locale: uk })}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">Недостатньо даних для підрахунку</p>
+            )}
+          </div>
         </div>
       </div>
 

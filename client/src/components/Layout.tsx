@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
                 СвітлоБот <span className="text-primary">Monitor</span>
               </h1>
             </div>
-            <nav className="flex gap-4">
+            <nav className="flex gap-2 md:gap-4">
               <Link 
                 href="/" 
                 className={cn(
@@ -46,6 +46,17 @@ export function Layout({ children }: LayoutProps) {
               >
                 Графіки
               </Link>
+              <Link 
+                href="/contacts" 
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                  location === "/contacts" 
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                Contacts
+              </Link>
             </nav>
           </div>
         </div>
@@ -58,8 +69,13 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Footer */}
       <footer className="border-t bg-white py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-muted-foreground">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} СвітлоБот Моніторинг</p>
+          <div className="flex items-center gap-4">
+            <Link href="/contacts" className="hover:text-foreground transition-colors">
+              Contacts
+            </Link>
+          </div>
         </div>
       </footer>
     </div>
