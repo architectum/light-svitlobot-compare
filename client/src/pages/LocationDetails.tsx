@@ -2,6 +2,7 @@ import { useLocation as useWouterLocation, useRoute } from "wouter";
 import { Layout } from "@/components/Layout";
 import { useLocation, useScanLocation } from "@/hooks/use-locations";
 import { EventTimeline } from "@/components/EventTimeline";
+import { LocationMap } from "@/components/LocationMap";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Download } from "lucide-react";
@@ -143,6 +144,8 @@ export default function LocationDetails() {
             </div>
           </div>
         </div>
+
+        <LocationMap address={location.address} />
 
         {/* Timeline Section */}
         <div className="space-y-6">
