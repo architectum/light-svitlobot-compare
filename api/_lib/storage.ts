@@ -1,24 +1,13 @@
-import {
-  type Location,
-  type InsertLocation,
-  type Event,
-  type InsertEvent,
-  type LocationWithEvents,
-} from "@shared/schema";
 import { firestore, isFirebaseConfigured } from "./firebase";
-
-export interface IStorage {
-  // Locations
-  getLocations(): Promise<LocationWithEvents[]>;
-  getLocation(id: number): Promise<LocationWithEvents | undefined>;
-  createLocation(location: InsertLocation): Promise<Location>;
-  updateLocationStatus(id: number, status: string, lastScraped: Date): Promise<Location>;
-  
-  // Events
-  getEventsByLocation(locationId: number): Promise<Event[]>;
-  createEvent(event: InsertEvent): Promise<Event>;
-  getLastEvent(locationId: number): Promise<Event | undefined>;
-}
+import type {
+  Location,
+  Event,
+  LocationWithEvents,
+  InsertLocation,
+  InsertEvent,
+  FirestoreLocationDoc,
+  FirestoreEventDoc,
+} from "./types";
 
 // Demo data for when Firebase is not configured
 const demoLocations: LocationWithEvents[] = [
@@ -72,15 +61,6 @@ const demoLocations: LocationWithEvents[] = [
   },
 ];
 
-type FirestoreLocationDoc = Omit<Location, "id" | "lastScrapedAt"> & {
-  lastScrapedAt?: string | null;
-};
-
-type FirestoreEventDoc = Omit<Event, "id" | "timestamp" | "createdAt"> & {
-  timestamp: string;
-  createdAt?: string | null;
-};
-
 const locationsCollection = isFirebaseConfigured
   ? firestore.collection("locations")
   : null;
@@ -112,7 +92,9 @@ function mapEventDoc(id: string, data: FirestoreEventDoc): Event {
   };
 }
 
-async function getNextId(collection: FirebaseFirestore.CollectionReference) {
+async function getNextId(
+  collection: FirebaseFirestore.CollectionReference
+): Promise<number> {
   const counterRef = firestore.collection("counters").doc(collection.id);
   const result = await firestore.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(counterRef);
@@ -123,7 +105,7 @@ async function getNextId(collection: FirebaseFirestore.CollectionReference) {
   return result;
 }
 
-export class FirestoreStorage implements IStorage {
+export const storage = {
   async getLocations(): Promise<LocationWithEvents[]> {
     if (!isFirebaseConfigured || !locationsCollection) {
       return demoLocations;
@@ -133,13 +115,16 @@ export class FirestoreStorage implements IStorage {
     const results: LocationWithEvents[] = [];
 
     for (const doc of snapshot.docs) {
-      const location = mapLocationDoc(doc.id, doc.data() as FirestoreLocationDoc);
+      const location = mapLocationDoc(
+        doc.id,
+        doc.data() as FirestoreLocationDoc
+      );
       const locEvents = await this.getEventsByLocation(location.id);
       results.push({ ...location, events: locEvents });
     }
 
     return results;
-  }
+  },
 
   async getLocation(id: number): Promise<LocationWithEvents | undefined> {
     if (!isFirebaseConfigured || !locationsCollection) {
@@ -151,11 +136,11 @@ export class FirestoreStorage implements IStorage {
     const location = mapLocationDoc(doc.id, doc.data() as FirestoreLocationDoc);
     const locEvents = await this.getEventsByLocation(id);
     return { ...location, events: locEvents };
-  }
+  },
 
   async createLocation(location: InsertLocation): Promise<Location> {
     if (!isFirebaseConfigured || !locationsCollection) {
-      throw new Error("Firebase not configured - cannot create location in demo mode");
+      throw new Error("Firebase not configured - cannot create location");
     }
 
     const id = await getNextId(locationsCollection);
@@ -170,11 +155,15 @@ export class FirestoreStorage implements IStorage {
     };
     await locationsCollection.doc(String(id)).set(payload);
     return mapLocationDoc(String(id), payload);
-  }
+  },
 
-  async updateLocationStatus(id: number, status: string, lastScraped: Date): Promise<Location> {
+  async updateLocationStatus(
+    id: number,
+    status: string,
+    lastScraped: Date
+  ): Promise<Location> {
     if (!isFirebaseConfigured || !locationsCollection) {
-      throw new Error("Firebase not configured - cannot update location in demo mode");
+      throw new Error("Firebase not configured - cannot update location");
     }
 
     const docRef = locationsCollection.doc(String(id));
@@ -183,11 +172,11 @@ export class FirestoreStorage implements IStorage {
         currentStatusRaw: status,
         lastScrapedAt: lastScraped.toISOString(),
       },
-      { merge: true },
+      { merge: true }
     );
     const updated = await docRef.get();
     return mapLocationDoc(String(id), updated.data() as FirestoreLocationDoc);
-  }
+  },
 
   async getEventsByLocation(locationId: number): Promise<Event[]> {
     if (!isFirebaseConfigured || !eventsCollection) {
@@ -199,12 +188,14 @@ export class FirestoreStorage implements IStorage {
       .where("locationId", "==", locationId)
       .orderBy("timestamp", "desc")
       .get();
-    return snapshot.docs.map((doc) => mapEventDoc(doc.id, doc.data() as FirestoreEventDoc));
-  }
+    return snapshot.docs.map((doc) =>
+      mapEventDoc(doc.id, doc.data() as FirestoreEventDoc)
+    );
+  },
 
   async createEvent(event: InsertEvent): Promise<Event> {
     if (!isFirebaseConfigured || !eventsCollection) {
-      throw new Error("Firebase not configured - cannot create event in demo mode");
+      throw new Error("Firebase not configured - cannot create event");
     }
 
     const id = await getNextId(eventsCollection);
@@ -217,7 +208,7 @@ export class FirestoreStorage implements IStorage {
     };
     await eventsCollection.doc(String(id)).set(payload);
     return mapEventDoc(String(id), payload);
-  }
+  },
 
   async getLastEvent(locationId: number): Promise<Event | undefined> {
     if (!isFirebaseConfigured || !eventsCollection) {
@@ -232,7 +223,64 @@ export class FirestoreStorage implements IStorage {
       .get();
     const doc = snapshot.docs[0];
     return doc ? mapEventDoc(doc.id, doc.data() as FirestoreEventDoc) : undefined;
-  }
-}
+  },
+};
 
-export const storage = new FirestoreStorage();
+// Types for Firestore documents and API responses
+
+export interface Location {
+    id: number;
+    number: number | null;
+    address: string;
+    currentStatusRaw: string | null;
+    group: string | null;
+    channelName: string | null;
+    url: string;
+    lastScrapedAt: Date | null;
+  }
+  
+  export interface Event {
+    id: number;
+    locationId: number;
+    timestamp: Date;
+    isLightOn: boolean;
+    message: string;
+    createdAt: Date | null;
+  }
+  
+  export interface LocationWithEvents extends Location {
+    events: Event[];
+  }
+  
+  export interface InsertLocation {
+    number?: number | null;
+    address: string;
+    currentStatusRaw?: string | null;
+    group?: string | null;
+    channelName?: string | null;
+    url: string;
+  }
+  
+  export interface InsertEvent {
+    locationId: number;
+    timestamp: Date;
+    isLightOn: boolean;
+    message: string;
+  }
+  
+  export interface ScrapeResult {
+    success: boolean;
+    message: string;
+    newEventsCount: number;
+  }
+  
+  // Firestore document types (dates stored as ISO strings)
+  export type FirestoreLocationDoc = Omit<Location, "id" | "lastScrapedAt"> & {
+    lastScrapedAt?: string | null;
+  };
+  
+  export type FirestoreEventDoc = Omit<Event, "id" | "timestamp" | "createdAt"> & {
+    timestamp: string;
+    createdAt?: string | null;
+  };
+  

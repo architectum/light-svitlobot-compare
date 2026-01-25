@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
+import { getApiUrl } from "@/lib/api";
 
 // Types derived from the schema responses
 export type LocationWithEvents = z.infer<typeof api.locations.get.responses[200]>;
@@ -10,7 +11,7 @@ export function useLocations() {
   return useQuery({
     queryKey: [api.locations.list.path],
     queryFn: async () => {
-      const res = await fetch(api.locations.list.path);
+      const res = await fetch(getApiUrl(api.locations.list.path));
       if (!res.ok) throw new Error("Failed to fetch locations");
       return api.locations.list.responses[200].parse(await res.json());
     },
@@ -21,7 +22,7 @@ export function useLocation(id: number) {
   return useQuery({
     queryKey: [api.locations.get.path, id],
     queryFn: async () => {
-      const url = buildUrl(api.locations.get.path, { id });
+      const url = getApiUrl(buildUrl(api.locations.get.path, { id }));
       const res = await fetch(url);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch location");
@@ -37,7 +38,7 @@ export function useScanLocation() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const url = buildUrl(api.locations.scan.path, { id });
+      const url = getApiUrl(buildUrl(api.locations.scan.path, { id }));
       const res = await fetch(url, {
         method: "POST",
       });
@@ -72,7 +73,7 @@ export function useScanAll() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(api.locations.scanAll.path, {
+      const res = await fetch(getApiUrl(api.locations.scanAll.path), {
         method: "POST",
       });
       

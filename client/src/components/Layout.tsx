@@ -47,7 +47,7 @@ export function Layout({ children }: LayoutProps) {
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                Графіки
+                Порівняти відключення
               </Link>
               <Link 
                 href="/contacts" 

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { api } from "@shared/routes";
 import { trackEvent } from "@/lib/analytics";
+import { getApiUrl } from "@/lib/api";
 
 export default function Dashboard() {
   const { data: locations, isLoading } = useLocations();
@@ -27,7 +28,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">Дані зі світлоботів навколо Берестейський просп. 121</h1>
             <p className="text-muted-foreground mt-2">
-              Слідкуйте за станом електроенергії навколо і порівнюйте реальні відключення на вкладці "Графіки" у реальному часі.
+              Слідкуйте за станом електроенергії навколо і порівнюйте реальні відключення на вкладці "Порівняти відключення" у реальному часі.
             </p>
           </div>
           
@@ -35,7 +36,7 @@ export default function Dashboard() {
             {/* <Button 
               variant="outline"
               size="lg"
-              onClick={() => window.open(api.locations.downloadAll.path, '_blank')}
+              onClick={() => window.open(getApiUrl(api.locations.downloadAll.path), '_blank')}
               className="border-border/60 hover:bg-secondary transition-all"
             >
               <Download className="mr-2 h-5 w-5" />
