@@ -12,21 +12,6 @@ export const errorSchemas = {
 
 export const api = {
   locations: {
-    list: {
-      method: 'GET' as const,
-      path: '/api/locations',
-      responses: {
-        200: z.array(z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>()),
-      },
-    },
-    get: {
-      method: 'GET' as const,
-      path: '/api/locations/:id',
-      responses: {
-        200: z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>(),
-        404: errorSchemas.notFound,
-      },
-    },
     scan: {
       method: 'POST' as const,
       path: '/api/locations/:id/scan',
@@ -52,28 +37,6 @@ export const api = {
         500: errorSchemas.internal,
       },
     },
-    downloadAll: {
-      method: 'GET' as const,
-      path: '/api/download/all',
-      responses: {
-        200: z.any(),
-      },
-    },
-    downloadOne: {
-      method: 'GET' as const,
-      path: '/api/download/:id',
-      responses: {
-        200: z.any(),
-        404: errorSchemas.notFound,
-      },
-    },
-    charts: {
-      method: 'GET' as const,
-      path: '/api/charts-data',
-      responses: {
-        200: z.array(z.custom<typeof locations.$inferSelect & { events: (typeof events.$inferSelect)[] }>()),
-      },
-    }
   },
 };
 

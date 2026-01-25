@@ -46,7 +46,7 @@ export default function LocationDetails() {
   const latestEvent = location.events && location.events.length > 0 ? location.events[0] : null;
   const isOnline = latestEvent?.isLightOn ?? false;
 
-  const downloadUrl = getApiUrl(buildUrl(api.locations.downloadOne.path, { id }));
+  // const downloadUrl = getApiUrl(buildUrl(api.locations.downloadOne.path, { id }));
 
   return (
     <Layout>
