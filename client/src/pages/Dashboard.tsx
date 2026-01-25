@@ -7,6 +7,7 @@ import { RefreshCw, Search, Loader2, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { api } from "@shared/routes";
+import { trackEvent } from "@/lib/analytics";
 
 export default function Dashboard() {
   const { data: locations, isLoading } = useLocations();
@@ -42,7 +43,10 @@ export default function Dashboard() {
             </Button> */}
             <Button 
               size="lg"
-              onClick={() => scanAll()} 
+              onClick={() => {
+                trackEvent("scan_all_click", { source: "dashboard" });
+                scanAll();
+              }} 
               disabled={isScanning}
               className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all"
             >
@@ -69,6 +73,11 @@ export default function Dashboard() {
             className="pl-10 h-12 rounded-xl bg-white shadow-sm border-border/50 focus:border-primary focus:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onBlur={(e) => {
+              const value = e.target.value.trim();
+              if (!value) return;
+              trackEvent("location_search", { query: value, result_count: filteredLocations?.length ?? 0 });
+            }}
           />
         </div>
 

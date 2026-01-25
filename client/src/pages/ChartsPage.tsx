@@ -14,6 +14,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore, startOfDay, addDays } from "date-fns";
 import { uk } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const REFERENCE_ADDRESS = "Берестейський 121-Б";
 
@@ -177,7 +178,17 @@ export default function ChartsPage() {
     const formatHours = (value: number) => value.toFixed(1);
 
     return (
-      <Card key={location.id} className="overflow-hidden border-border/60 shadow-sm">
+      <Card
+        key={location.id}
+        className="overflow-hidden border-border/60 shadow-sm"
+        onClick={() =>
+          trackEvent("chart_card_click", {
+            location_id: location.id,
+            address: location.address,
+            is_reference: isMainRef,
+          })
+        }
+      >
         <CardHeader className="bg-gradient-to-r from-slate-50 to-white py-4">
           <CardTitle className="text-base font-semibold flex flex-wrap items-center justify-between gap-2">
             <span>{location.address} {location.group ? `(Група ${location.group})` : ""}</span>

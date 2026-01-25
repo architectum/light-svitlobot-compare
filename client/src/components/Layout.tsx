@@ -1,6 +1,7 @@
 import { Zap } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function Layout({ children }: LayoutProps) {
             <nav className="flex gap-2 md:gap-4">
               <Link 
                 href="/" 
+                onClick={() => trackEvent("nav_click", { label: "dashboard", path: "/" })}
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   location === "/" 
@@ -37,6 +39,7 @@ export function Layout({ children }: LayoutProps) {
               </Link>
               <Link 
                 href="/charts" 
+                onClick={() => trackEvent("nav_click", { label: "charts", path: "/charts" })}
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   location === "/charts" 
@@ -48,6 +51,7 @@ export function Layout({ children }: LayoutProps) {
               </Link>
               <Link 
                 href="/contacts" 
+                onClick={() => trackEvent("nav_click", { label: "contacts", path: "/contacts" })}
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                   location === "/contacts" 
@@ -72,7 +76,11 @@ export function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} СвітлоБот Моніторинг</p>
           <div className="flex items-center gap-4">
-            <Link href="/contacts" className="hover:text-foreground transition-colors">
+            <Link
+              href="/contacts"
+              onClick={() => trackEvent("nav_click", { label: "contacts_footer", path: "/contacts" })}
+              className="hover:text-foreground transition-colors"
+            >
               Contacts
             </Link>
           </div>

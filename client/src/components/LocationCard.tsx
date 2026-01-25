@@ -5,6 +5,7 @@ import { uk } from "date-fns/locale";
 import { LocationWithEvents } from "@/hooks/use-locations";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
+import { trackEvent } from "@/lib/analytics";
 
 interface LocationCardProps {
   location: LocationWithEvents;
@@ -118,7 +119,16 @@ export function LocationCard({ location }: LocationCardProps) {
           </span>
         </div>
         
-        <Link href={`/location/${location.id}`}>
+        <Link
+          href={`/location/${location.id}`}
+          onClick={() =>
+            trackEvent("location_card_click", {
+              location_id: location.id,
+              address: location.address,
+              group: location.group ?? "",
+            })
+          }
+        >
           <Button variant="ghost" size="sm" className="group-hover:text-primary group-hover:bg-primary/10 transition-colors">
             Деталі <ArrowRight className="ml-2 w-4 h-4" />
           </Button>

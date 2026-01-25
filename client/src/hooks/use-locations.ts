@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 
 // Types derived from the schema responses
-export type LocationWithEvents = NonNullable<typeof api.locations.get.responses[200]>;
+export type LocationWithEvents = z.infer<typeof api.locations.get.responses[200]>;
 
 export function useLocations() {
   return useQuery({

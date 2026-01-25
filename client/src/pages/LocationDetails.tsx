@@ -9,6 +9,7 @@ import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Download }
 import { formatDistanceToNow } from "date-fns";
 import { uk } from "date-fns/locale";
 import { api, buildUrl } from "@shared/routes";
+import { trackEvent } from "@/lib/analytics";
 
 export default function LocationDetails() {
   const [match, params] = useRoute("/location/:id");
@@ -53,7 +54,10 @@ export default function LocationDetails() {
         <div className="flex items-center justify-between">
           <Button 
             variant="ghost" 
-            onClick={() => setLocation("/")} 
+            onClick={() => {
+              trackEvent("navigate_back", { from: "location_details", to: "/" });
+              setLocation("/");
+            }} 
             className="pl-0 hover:pl-2 transition-all text-muted-foreground hover:text-primary"
           >
             <ArrowLeft className="mr-2 h-4 w-4" /> Назад до списку
@@ -105,7 +109,10 @@ export default function LocationDetails() {
                   className="py-2 px-4 text-base justify-center" 
                 />
                 <Button 
-                  onClick={() => scan(id)} 
+                  onClick={() => {
+                    trackEvent("scan_location_click", { location_id: id, address: location.address });
+                    scan(id);
+                  }} 
                   disabled={isScanning}
                   variant="outline"
                   className="w-full border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40"
@@ -118,6 +125,13 @@ export default function LocationDetails() {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-full"
+                  onClick={() =>
+                    trackEvent("source_link_click", {
+                      location_id: id,
+                      address: location.address,
+                      url: location.url,
+                    })
+                  }
                 >
                   <Button variant="ghost" className="w-full text-muted-foreground hover:text-foreground">
                     Джерело <ExternalLink className="w-3 h-3 ml-2" />

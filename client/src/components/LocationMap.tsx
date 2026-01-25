@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 type GeoPoint = {
   lat: number;
@@ -87,6 +88,12 @@ export function LocationMap({ address, className }: LocationMapProps) {
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-primary hover:underline"
+          onClick={() =>
+            trackEvent("map_open_click", {
+              address,
+              source: "location_map",
+            })
+          }
         >
           Відкрити в OpenStreetMap
         </a>
