@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore } from "date-fns";
+import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore, startOfDay, addDays } from "date-fns";
 import { uk } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 
@@ -25,13 +25,14 @@ export default function ChartsPage() {
 
     const now = new Date();
     const threeDaysAgo = subDays(now, 3);
+    const intervalMinutes = 30;
     
     // Generate minutes for the last 3 days
     const timePoints: Date[] = [];
     let current = startOfMinute(threeDaysAgo);
     while (isBefore(current, now)) {
       timePoints.push(current);
-      current = addMinutes(current, 30); // 30-min intervals for performance, can be 1-min but might be slow
+      current = addMinutes(current, intervalMinutes); // 30-min intervals for performance, can be 1-min but might be slow
     }
 
     const referenceLocation = locations.find(l => l.address.includes(REFERENCE_ADDRESS));
@@ -57,6 +58,40 @@ export default function ChartsPage() {
 
     const refStatus = referenceLocation ? processEvents(referenceLocation.events, timePoints) : null;
 
+    const buildDailyStats = (statusData: number[]) => {
+      const dayLabels = [0, 1, 2].map(offset => {
+        const dayStart = startOfDay(subDays(now, offset));
+        const nextDay = addDays(dayStart, 1);
+        let offCount = 0;
+        let onCount = 0;
+
+        timePoints.forEach((point, idx) => {
+          if (isAfter(point, dayStart) || point.getTime() === dayStart.getTime()) {
+            if (isBefore(point, nextDay)) {
+              if (statusData[idx] === 1) {
+                onCount += 1;
+              } else {
+                offCount += 1;
+              }
+            }
+          }
+        });
+
+        const hoursOff = (offCount * intervalMinutes) / 60;
+        const hoursOn = (onCount * intervalMinutes) / 60;
+
+        return {
+          date: dayStart,
+          hoursOff,
+          hoursOn
+        };
+      });
+
+      return dayLabels;
+    };
+
+    const referenceStats = referenceLocation ? buildDailyStats(processEvents(referenceLocation.events, timePoints)) : null;
+
     return {
       timePoints,
       locations: locations.map(loc => ({
@@ -64,7 +99,9 @@ export default function ChartsPage() {
         statusData: processEvents(loc.events, timePoints),
         isReference: loc.id === referenceLocation?.id
       })),
-      refStatus
+      refStatus,
+      referenceStats,
+      intervalMinutes
     };
   }, [locations]);
 
@@ -81,6 +118,41 @@ export default function ChartsPage() {
   const referenceLocationData = chartData?.locations.find(l => l.isReference);
   const otherLocations = chartData?.locations.filter(l => !l.isReference) || [];
 
+  const buildStatsForLocation = (statusData: number[]) => {
+    if (!chartData) return [];
+
+    const now = new Date();
+    const intervalMinutes = chartData.intervalMinutes;
+
+    return [0, 1, 2].map(offset => {
+      const dayStart = startOfDay(subDays(now, offset));
+      const nextDay = addDays(dayStart, 1);
+      let offCount = 0;
+      let onCount = 0;
+
+      chartData.timePoints.forEach((point, idx) => {
+        if (isAfter(point, dayStart) || point.getTime() === dayStart.getTime()) {
+          if (isBefore(point, nextDay)) {
+            if (statusData[idx] === 1) {
+              onCount += 1;
+            } else {
+              offCount += 1;
+            }
+          }
+        }
+      });
+
+      const hoursOff = (offCount * intervalMinutes) / 60;
+      const hoursOn = (onCount * intervalMinutes) / 60;
+
+      return {
+        date: dayStart,
+        hoursOff,
+        hoursOn
+      };
+    });
+  };
+
   const renderChart = (location: any, isMainRef = false) => {
     const data = chartData!.timePoints.map((time, idx) => ({
       time: format(time, "HH:mm (dd.MM)", { locale: uk }),
@@ -96,6 +168,13 @@ export default function ChartsPage() {
       return { id: loc.id, x, y };
     });
     const referenceId = chartData?.locations.find((loc) => loc.isReference)?.id;
+    const locationStats = chartData?.timePoints && location.statusData
+      ? buildStatsForLocation(location.statusData)
+      : [];
+
+    const referenceStats = chartData?.referenceStats ?? [];
+
+    const formatHours = (value: number) => value.toFixed(1);
 
     return (
       <Card key={location.id} className="overflow-hidden border-border/60 shadow-sm">
@@ -182,6 +261,29 @@ export default function ChartsPage() {
                 Мапа локацій
               </div>
             </div>
+          </div>
+        </CardContent>
+        <CardContent className="border-t bg-muted/20">
+          <div className="grid gap-3 text-sm">
+            {locationStats.map((stat, idx) => (
+              <div key={`${location.id}-stat-${idx}`} className="grid gap-1">
+                <div className="font-semibold text-foreground">
+                  {format(stat.date, "dd.MM.yyyy", { locale: uk })}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
+                  <div className="rounded-md bg-background/80 px-3 py-2">
+                    <div className="text-xs uppercase tracking-wide">Поточна адреса</div>
+                    <div className="mt-1">Без світла: {formatHours(stat.hoursOff)} год</div>
+                    <div>Зі світлом: {formatHours(stat.hoursOn)} год</div>
+                  </div>
+                  <div className="rounded-md bg-background/80 px-3 py-2">
+                    <div className="text-xs uppercase tracking-wide">Еталонна адреса</div>
+                    <div className="mt-1">Без світла: {formatHours(referenceStats[idx]?.hoursOff ?? 0)} год</div>
+                    <div>Зі світлом: {formatHours(referenceStats[idx]?.hoursOn ?? 0)} год</div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
