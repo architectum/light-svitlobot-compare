@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleCors } from "./_lib/cors";
-import { storage } from "./_lib/storage";
-import { scrapeLocation } from "./_lib/scraper";
+import { handleCors } from "./_lib/cors.ts";
+import { storage } from "./_lib/storage.ts";
+import { scrapeLocation } from "./_lib/scraper.ts";
 
 export default async function handler(
   req: VercelRequest,
