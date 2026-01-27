@@ -1,4 +1,4 @@
-import { firestore, isFirebaseConfigured } from "./firebase";
+import { firestore, isFirebaseConfigured } from "./firebase.ts";
 import type {
   Location,
   Event,
@@ -7,7 +7,7 @@ import type {
   InsertEvent,
   FirestoreLocationDoc,
   FirestoreEventDoc,
-} from "./types";
+} from "./types.ts";
 
 // Demo data for when Firebase is not configured
 const demoLocations: LocationWithEvents[] = [
