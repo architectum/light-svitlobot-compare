@@ -33,24 +33,44 @@ export function useLocations() {
   return useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
-      const locationsRef = collection(db, "locations");
-      const snapshot = await getDocs(query(locationsRef, orderBy("number", "asc")));
-      
-      const locations = snapshot.docs.map(docSnap => mapLocation(docSnap.id, docSnap.data()));
-      
-      const locationsWithEvents = await Promise.all(locations.map(async (loc) => {
-         const eventsRef = collection(db, "events");
-         const eventsQuery = query(
-           eventsRef, 
-           where("locationId", "==", loc.id),
-           orderBy("timestamp", "desc")
-         );
-         const eventsSnap = await getDocs(eventsQuery);
-         const events = eventsSnap.docs.map(e => mapEvent(e.id, e.data()));
-         return { ...loc, events };
-      }));
-      
-      return locationsWithEvents;
+      try {
+        const locationsRef = collection(db, "locations");
+        const snapshot = await getDocs(query(locationsRef, orderBy("number", "asc")));
+        
+        const locations = snapshot.docs.map(docSnap => mapLocation(docSnap.id, docSnap.data()));
+        
+        const locationsWithEvents = await Promise.all(locations.map(async (loc) => {
+          const eventsRef = collection(db, "events");
+          try {
+            // Try with composite index first
+            const eventsQuery = query(
+              eventsRef,
+              where("locationId", "==", loc.id),
+              orderBy("timestamp", "desc")
+            );
+            const eventsSnap = await getDocs(eventsQuery);
+            const events = eventsSnap.docs.map(e => mapEvent(e.id, e.data()));
+            return { ...loc, events };
+          } catch (indexError) {
+            // Fallback: fetch without ordering, sort client-side
+            console.warn("Index not ready, using fallback query for location", loc.id);
+            const fallbackQuery = query(
+              eventsRef,
+              where("locationId", "==", loc.id)
+            );
+            const eventsSnap = await getDocs(fallbackQuery);
+            const events = eventsSnap.docs
+              .map(e => mapEvent(e.id, e.data()))
+              .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            return { ...loc, events };
+          }
+        }));
+        
+        return locationsWithEvents;
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+        throw error;
+      }
     },
   });
 }
@@ -59,23 +79,42 @@ export function useLocation(id: number) {
   return useQuery({
     queryKey: ["locations", id],
     queryFn: async () => {
-      const docRef = doc(db, "locations", String(id));
-      const docSnap = await getDoc(docRef);
-      
-      if (!docSnap.exists()) return null;
-      
-      const location = mapLocation(docSnap.id, docSnap.data());
-      
-      const eventsRef = collection(db, "events");
-      const eventsQuery = query(
-        eventsRef, 
-        where("locationId", "==", id),
-        orderBy("timestamp", "desc")
-      );
-      const eventsSnap = await getDocs(eventsQuery);
-      const events = eventsSnap.docs.map(e => mapEvent(e.id, e.data()));
-      
-      return { ...location, events };
+      try {
+        const docRef = doc(db, "locations", String(id));
+        const docSnap = await getDoc(docRef);
+        
+        if (!docSnap.exists()) return null;
+        
+        const location = mapLocation(docSnap.id, docSnap.data());
+        
+        const eventsRef = collection(db, "events");
+        try {
+          // Try with composite index first
+          const eventsQuery = query(
+            eventsRef,
+            where("locationId", "==", id),
+            orderBy("timestamp", "desc")
+          );
+          const eventsSnap = await getDocs(eventsQuery);
+          const events = eventsSnap.docs.map(e => mapEvent(e.id, e.data()));
+          return { ...location, events };
+        } catch (indexError) {
+          // Fallback: fetch without ordering, sort client-side
+          console.warn("Index not ready, using fallback query for location", id);
+          const fallbackQuery = query(
+            eventsRef,
+            where("locationId", "==", id)
+          );
+          const eventsSnap = await getDocs(fallbackQuery);
+          const events = eventsSnap.docs
+            .map(e => mapEvent(e.id, e.data()))
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+          return { ...location, events };
+        }
+      } catch (error) {
+        console.error("Error fetching location:", error);
+        throw error;
+      }
     },
     enabled: !!id,
   });
