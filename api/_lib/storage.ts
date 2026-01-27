@@ -7,7 +7,7 @@ import type {
   InsertEvent,
   FirestoreLocationDoc,
   FirestoreEventDoc,
-} from "./types.ts";
+} from "./types.js";
 
 // Demo data for when Firebase is not configured
 const demoLocations: LocationWithEvents[] = [

@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import axios from "axios";
-import { storage } from "./storage.ts";
-import type { LocationWithEvents, InsertLocation, ScrapeResult } from "./types";
+import { storage } from "./storage.js";
+import type { LocationWithEvents, InsertLocation, ScrapeResult } from "./types.js";
 
 export function parseInitialFile(content: string): InsertLocation[] {
   const lines = content.split("\n");
