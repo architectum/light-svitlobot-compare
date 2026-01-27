@@ -21,10 +21,12 @@ export function LocationMap({ address, className }: LocationMapProps) {
   const [error, setError] = useState<string | null>(null);
 
   const searchUrl = useMemo(() => {
+    // Add "Київ, Україна" to improve geocoding accuracy
+    const fullAddress = `${address}, Київ, Україна`;
     const params = new URLSearchParams({
       format: "jsonv2",
       limit: "1",
-      q: address,
+      q: fullAddress,
     });
     return `${NOMINATIM_ENDPOINT}?${params.toString()}`;
   }, [address]);
@@ -80,7 +82,7 @@ export function LocationMap({ address, className }: LocationMapProps) {
   }, [point]);
 
   return (
-    <div className={cn("rounded-3xl border bg-card p-6 shadow-sm", className)}>
+    <div className={cn("rounded-3xl border bg-card p-6 shadow-lg", className)}>
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-display font-bold">Розташування на карті</h2>
         <a

@@ -54,7 +54,7 @@ export function LocationCard({ location }: LocationCardProps) {
   const recentPeriods = getRecentPeriods();
   
   return (
-    <div className="group bg-card hover:bg-gradient-to-br hover:from-card hover:to-primary/5 border border-border/50 hover:border-primary/20 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col h-full">
+    <div className="group bg-card hover:bg-gradient-to-br hover:from-card hover:to-primary/5 border border-border/50 hover:border-primary/20 rounded-2xl p-6 shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
           <div className="h-10 w-10 rounded-xl bg-secondary/50 flex items-center justify-center text-lg font-bold font-display text-primary">

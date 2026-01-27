@@ -5,8 +5,8 @@ import { EventTimeline } from "@/components/EventTimeline";
 import { LocationMap } from "@/components/LocationMap";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Download } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Activity, Download } from "lucide-react";
+import { formatDistanceToNow, formatDistanceStrict } from "date-fns";
 import { uk } from "date-fns/locale";
 import { api, buildUrl } from "@shared/routes";
 import { trackEvent } from "@/lib/analytics";
@@ -45,6 +45,43 @@ export default function LocationDetails() {
 
   const latestEvent = location.events && location.events.length > 0 ? location.events[0] : null;
   const isOnline = latestEvent?.isLightOn ?? false;
+  const recentEvents = location.events ? [...location.events] : [];
+
+  const getRecentPeriods = () => {
+    if (recentEvents.length === 0) return [];
+    const sorted = recentEvents.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+    const now = new Date();
+    const currentStatus = sorted[0].isLightOn;
+    const currentStart = new Date(sorted[0].timestamp);
+    const periods = [
+      {
+        isLightOn: currentStatus,
+        start: currentStart,
+        end: now,
+      },
+    ];
+
+    let index = 1;
+    while (index < sorted.length && sorted[index].isLightOn === currentStatus) {
+      index += 1;
+    }
+
+    if (index < sorted.length) {
+      const previousStatus = sorted[index].isLightOn;
+      const previousStart = new Date(sorted[index].timestamp);
+      periods.push({
+        isLightOn: previousStatus,
+        start: previousStart,
+        end: currentStart,
+      });
+    }
+
+    return periods;
+  };
+
+  const recentPeriods = getRecentPeriods();
 
   // const downloadUrl = getApiUrl(buildUrl(api.locations.downloadOne.path, { id }));
 
@@ -76,7 +113,7 @@ export default function LocationDetails() {
         </div>
 
         {/* Header Card */}
-        <div className="bg-card rounded-3xl border shadow-sm p-6 md:p-8 relative overflow-hidden">
+        <div className="bg-card rounded-3xl border shadow-lg p-6 md:p-8 relative overflow-hidden">
           {/* Decorative background glow */}
           <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full blur-3xl opacity-20 ${isOnline ? 'bg-emerald-500' : 'bg-rose-500'}`} />
           
@@ -143,17 +180,48 @@ export default function LocationDetails() {
 
             {/* Current Status Box */}
             <div className="bg-secondary/50 rounded-2xl p-6 border border-secondary backdrop-blur-sm">
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-background rounded-lg shadow-sm">
-                  <Info className="w-6 h-6 text-primary" />
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Bot Status */}
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-background rounded-lg shadow-sm">
+                    <Info className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-1">
+                      Поточний статус від бота
+                    </h3>
+                    <p className="text-lg md:text-xl font-medium text-foreground">
+                      {location.currentStatusRaw || "Дані відсутні"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-1">
-                    Поточний статус від бота
-                  </h3>
-                  <p className="text-lg md:text-xl font-medium text-foreground">
-                    {location.currentStatusRaw || "Дані відсутні"}
-                  </p>
+
+                {/* Last 2 Periods */}
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-background rounded-lg shadow-sm">
+                    <Activity className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-2">
+                      Останні 2 періоди
+                    </h3>
+                    <div className="space-y-2">
+                      {recentPeriods.length > 0 ? (
+                        recentPeriods.map((period, index) => (
+                          <div key={`${period.start.toISOString()}-${index}`} className="flex items-center justify-between text-sm">
+                            <span className={`font-medium ${period.isLightOn ? "text-emerald-600" : "text-rose-500"}`}>
+                              {period.isLightOn ? "🟢 Світло є" : "🔴 Світла немає"}
+                            </span>
+                            <span className="text-muted-foreground font-medium">
+                              {formatDistanceStrict(period.start, period.end, { locale: uk })}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Недостатньо даних для підрахунку</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

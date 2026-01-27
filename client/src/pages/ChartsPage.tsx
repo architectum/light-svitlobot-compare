@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { useLocations } from "@/hooks/use-locations";
 import {
@@ -16,10 +16,80 @@ import { uk } from "date-fns/locale";
 import { Loader2 } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
+const NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/search";
+
+type GeoPoint = {
+  lat: number;
+  lon: number;
+  id: number;
+  address: string;
+  isReference: boolean;
+  isCurrent: boolean;
+};
+
 const REFERENCE_ADDRESS = "Берестейський 121-Б";
+
+// Cache for geocoded coordinates
+const geocodeCache: Map<string, { lat: number; lon: number } | null> = new Map();
+
+async function geocodeAddress(address: string): Promise<{ lat: number; lon: number } | null> {
+  if (geocodeCache.has(address)) {
+    return geocodeCache.get(address) ?? null;
+  }
+  
+  try {
+    const fullAddress = `${address}, Київ, Україна`;
+    const params = new URLSearchParams({
+      format: "jsonv2",
+      limit: "1",
+      q: fullAddress,
+    });
+    const response = await fetch(`${NOMINATIM_ENDPOINT}?${params.toString()}`);
+    const data = await response.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      geocodeCache.set(address, null);
+      return null;
+    }
+    
+    const result = {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon),
+    };
+    geocodeCache.set(address, result);
+    return result;
+  } catch {
+    geocodeCache.set(address, null);
+    return null;
+  }
+}
 
 export default function ChartsPage() {
   const { data: locations, isLoading } = useLocations();
+  const [geoPoints, setGeoPoints] = useState<Map<number, { lat: number; lon: number }>>(new Map());
+
+  // Geocode all locations
+  useEffect(() => {
+    if (!locations) return;
+    
+    const geocodeAll = async () => {
+      const newPoints = new Map<number, { lat: number; lon: number }>();
+      
+      // Geocode with delay to respect rate limits
+      for (const loc of locations) {
+        const coords = await geocodeAddress(loc.address);
+        if (coords) {
+          newPoints.set(loc.id, coords);
+        }
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      setGeoPoints(newPoints);
+    };
+    
+    geocodeAll();
+  }, [locations]);
 
   const chartData = useMemo(() => {
     if (!locations) return null;
@@ -180,7 +250,7 @@ export default function ChartsPage() {
     return (
       <Card
         key={location.id}
-        className="overflow-hidden border-border/60 shadow-sm"
+        className="overflow-hidden border-border/60 shadow-lg hover:shadow-xl transition-shadow"
         onClick={() =>
           trackEvent("chart_card_click", {
             location_id: location.id,
@@ -244,34 +314,51 @@ export default function ChartsPage() {
               </ResponsiveContainer>
             </div>
 
-            <div className="h-56 md:h-64 aspect-square rounded-2xl border border-border/60 bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-70" style={{
-                backgroundImage: "linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px), linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px)",
-                backgroundSize: "24px 24px",
-              }} />
-              <div className="absolute inset-0" aria-hidden>
-                {markerPositions.map((marker) => {
-                  const isReference = marker.id === referenceId;
-                  const isCurrent = marker.id === location.id;
-                  const sizeClass = isReference || isCurrent ? "h-3.5 w-3.5" : "h-2.5 w-2.5";
-                  const colorClass = isReference
-                    ? "bg-red-500"
-                    : isCurrent
-                      ? "bg-emerald-500"
-                      : "bg-slate-400";
-                  return (
-                    <span
-                      key={marker.id}
-                      className={`absolute ${sizeClass} ${colorClass} rounded-full shadow-[0_0_0_4px_rgba(255,255,255,0.8)]`}
-                      style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+            {(() => {
+              const currentCoords = geoPoints.get(location.id);
+              const refCoords = referenceId ? geoPoints.get(referenceId) : null;
+              
+              if (currentCoords) {
+                // Calculate bounding box to show both current and reference locations
+                const points = [currentCoords];
+                if (refCoords && !isMainRef) points.push(refCoords);
+                
+                const lats = points.map(p => p.lat);
+                const lons = points.map(p => p.lon);
+                const minLat = Math.min(...lats) - 0.005;
+                const maxLat = Math.max(...lats) + 0.005;
+                const minLon = Math.min(...lons) - 0.01;
+                const maxLon = Math.max(...lons) + 0.01;
+                
+                const bbox = `${minLon}%2C${minLat}%2C${maxLon}%2C${maxLat}`;
+                const marker = `${currentCoords.lat}%2C${currentCoords.lon}`;
+                const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`;
+                
+                return (
+                  <div className="h-56 md:h-64 aspect-square rounded-2xl border border-border/60 overflow-hidden shadow-md">
+                    <iframe
+                      title="OpenStreetMap"
+                      src={mapUrl}
+                      className="h-full w-full"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
                     />
-                  );
-                })}
-              </div>
-              <div className="absolute bottom-3 left-3 text-[11px] font-semibold text-muted-foreground bg-white/80 px-2 py-1 rounded-full border border-border/60">
-                Мапа локацій
-              </div>
-            </div>
+                  </div>
+                );
+              }
+              
+              // Fallback placeholder while loading
+              return (
+                <div className="h-56 md:h-64 aspect-square rounded-2xl border border-border/60 bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden shadow-md">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                      <p className="text-sm">Завантаження карти...</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </CardContent>
         <CardContent className="border-t bg-muted/20">
