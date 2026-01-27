@@ -15,7 +15,7 @@ export default async function handler(
 
   try {
     const locations = await storage.getLocations();
-    return locations;
+    // return locations;
     let totalNewEvents = 0;
 
     // Run sequentially to avoid rate limits
