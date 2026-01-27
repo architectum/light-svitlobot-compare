@@ -1,10 +1,15 @@
 /**
  * API URL configuration for client-side requests.
- * 
- * If VITE_API_URL is set (e.g., for Vercel deployment), use it as base URL.
- * Otherwise, use relative paths (for same-origin deployment like Firebase).
+ *
+ * Priority:
+ * 1. VITE_API_URL environment variable (set at build time)
+ * 2. Production fallback to Vercel API
+ * 3. Empty string for same-origin deployment
  */
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+const PRODUCTION_API_URL = "https://svitlo121.vercel.app";
+
+export const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? PRODUCTION_API_URL : "");
 
 /**
  * Build full API URL from a path.
