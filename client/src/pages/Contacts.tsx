@@ -1,29 +1,39 @@
 import { Layout } from "@/components/Layout";
-import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, User, Briefcase, Award, Globe, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const contactBlocks = [
   {
+    icon: User,
+    title: "Ім'я",
+    value: "Євгеній Іванець",
+  },
+  {
+    icon: Briefcase,
+    title: "Позиції",
+    value: "Software Architect/Tech Lead/CTO (12 років в IT)",
+  },
+  {
+    icon: Award,
+    title: "Експертиза",
+    value: "Python, TypeScript/Javascript full-stack, Node.js, React, PHP, Розробка Web-додатків, Розробка Mobile додатків (iOS, Android), Розробка автоматизацій, Розробка ботів, Розробка кастомних IoT рішень",
+  },
+  {
+    icon: Globe,
+    title: "Домени",
+    value: "E-commerce, Helthcare, Gov-trading, Automation, IoT",
+  },
+  {
     icon: Mail,
     title: "Email",
-    value: "support@yourdomain.com",
+    value: "evgeniyivanets@gmail.com",
   },
   {
-    icon: Phone,
-    title: "Phone",
-    value: "+1 (555) 123-4567",
-  },
-  {
-    icon: MapPin,
-    title: "Address",
-    value: "123 Main St, Suite 400, City, Country",
-  },
-  {
-    icon: Clock,
-    title: "Hours",
-    value: "Mon–Fri, 9:00–17:00",
-  },
+    icon: MessageCircle,
+    title: "Telegram",
+    value: "notahumman",
+  }
 ];
 
 export default function Contacts() {
