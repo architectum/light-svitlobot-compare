@@ -1,0 +1,14 @@
+# Robots.txt for Light Svitlobot Compare
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://svitlobot-compare.web.app/sitemap.xml
+
+# Crawl-delay for respecting server resources
+Crawl-delay: 10
+
+# Disallow admin/private directories (if any)
+Disallow: /api/
+Disallow: /private/
+Disallow: /internal/
