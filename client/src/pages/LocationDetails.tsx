@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation as useWouterLocation, useRoute } from "wouter";
 import { Layout } from "@/components/Layout";
 import { useLocation, useLocations, useScanLocation } from "@/hooks/use-locations";
@@ -9,7 +9,7 @@ import { ComparisonStats } from "@/components/ComparisonStats";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Activity, Download, BarChart3 } from "lucide-react";
-import { formatDistanceToNow, formatDistanceStrict, format, subDays, startOfMinute, addMinutes, isBefore, startOfDay, addDays, isAfter } from "date-fns";
+import { formatDistanceToNow, formatDistanceStrict, format, subDays, startOfMinute, addMinutes, isBefore, startOfDay, addDays, isAfter, differenceInDays } from "date-fns";
 import { uk } from "date-fns/locale";
 import { api, buildUrl } from "@shared/routes";
 import { trackEvent } from "@/lib/analytics";
@@ -26,10 +26,23 @@ import {
 
 const REFERENCE_ADDRESS = "Берестейський 121-Б";
 
+type PeriodOption = {
+  label: string;
+  days: number | null; // null means all time
+};
+
+const PERIOD_OPTIONS: PeriodOption[] = [
+  { label: "3 дні", days: 3 },
+  { label: "5 днів", days: 5 },
+  { label: "7 днів", days: 7 },
+  { label: "Весь час", days: null },
+];
+
 export default function LocationDetails() {
   const [match, params] = useRoute("/location/:id");
   const [, setLocation] = useWouterLocation();
   const id = parseInt(params?.id || "0");
+  const [selectedPeriod, setSelectedPeriod] = useState<number | null>(3);
   
   const { data: location, isLoading } = useLocation(id);
   const { data: allLocations, isLoading: isLoadingAll } = useLocations();
@@ -44,17 +57,38 @@ export default function LocationDetails() {
   // Check if current location is the reference
   const isCurrentReference = location?.address?.includes(REFERENCE_ADDRESS) ?? false;
 
+  // Calculate the earliest event date for "all time" option
+  const earliestEventDate = useMemo(() => {
+    if (!location?.events || location.events.length === 0) return null;
+    const allEvents = [...(location.events || []), ...(referenceLocation?.events || [])];
+    if (allEvents.length === 0) return null;
+    const sorted = allEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    return new Date(sorted[0].timestamp);
+  }, [location?.events, referenceLocation?.events]);
+
   // Build comparison chart data
   const comparisonData = useMemo(() => {
     if (!location || !referenceLocation || isCurrentReference) return null;
 
     const now = new Date();
-    const threeDaysAgo = subDays(now, 3);
-    const intervalMinutes = 30;
+    
+    // Calculate start date based on selected period
+    let startDate: Date;
+    if (selectedPeriod === null && earliestEventDate) {
+      startDate = earliestEventDate;
+    } else {
+      startDate = subDays(now, selectedPeriod || 3);
+    }
+    
+    // Adjust interval based on period length
+    const totalDays = differenceInDays(now, startDate);
+    let intervalMinutes = 30;
+    if (totalDays > 14) intervalMinutes = 60;
+    if (totalDays > 30) intervalMinutes = 120;
 
-    // Generate time points for the last 3 days
+    // Generate time points
     const timePoints: Date[] = [];
-    let current = startOfMinute(threeDaysAgo);
+    let current = startOfMinute(startDate);
     while (isBefore(current, now)) {
       timePoints.push(current);
       current = addMinutes(current, intervalMinutes);
@@ -88,9 +122,12 @@ export default function LocationDetails() {
       refStatus: refStatus[idx],
     }));
 
-    // Build daily statistics
+    // Build daily statistics for the selected period
     const buildDailyStats = () => {
-      return [0, 1, 2].map(offset => {
+      const daysToShow = selectedPeriod || totalDays;
+      const dayOffsets = Array.from({ length: Math.min(daysToShow, totalDays + 1) }, (_, i) => i);
+      
+      return dayOffsets.map(offset => {
         const dayStart = startOfDay(subDays(now, offset));
         const nextDay = addDays(dayStart, 1);
         let locOffCount = 0;
@@ -130,7 +167,7 @@ export default function LocationDetails() {
       chartData,
       dailyStats: buildDailyStats(),
     };
-  }, [location, referenceLocation, isCurrentReference]);
+  }, [location, referenceLocation, isCurrentReference, selectedPeriod, earliestEventDate]);
 
   if (isLoading) {
     return (
@@ -345,14 +382,41 @@ export default function LocationDetails() {
         {/* Comparison Chart Section */}
         {comparisonData && !isCurrentReference && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-display font-bold px-2 flex items-center gap-3">
-              <BarChart3 className="w-6 h-6 text-primary" />
-              Порівняння з еталонною адресою
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2">
+              <h2 className="text-2xl font-display font-bold flex items-center gap-3">
+                <BarChart3 className="w-6 h-6 text-primary" />
+                Порівняння з еталонною адресою
+              </h2>
+              
+              {/* Period Switcher */}
+              <div className="flex flex-wrap gap-2">
+                {PERIOD_OPTIONS.map((option) => (
+                  <Button
+                    key={option.label}
+                    variant={selectedPeriod === option.days ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      trackEvent("period_switch", { period: option.label, location_id: id });
+                      setSelectedPeriod(option.days);
+                    }}
+                    className={`text-xs h-8 px-3 ${
+                      selectedPeriod === option.days
+                        ? "bg-primary text-primary-foreground shadow-md"
+                        : "border-border/60 hover:bg-secondary"
+                    }`}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
             <Card className="overflow-hidden border-border/60 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-slate-50 to-white py-4">
                 <CardTitle className="text-base font-semibold flex flex-wrap items-center justify-between gap-2">
-                  <span>Порівняння за останні 3 доби</span>
+                  <span>
+                    Порівняння за {selectedPeriod === null ? "весь час" : `останні ${selectedPeriod} ${selectedPeriod === 1 ? "день" : selectedPeriod < 5 ? "дні" : "днів"}`}
+                  </span>
                   <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
                     Еталон: {REFERENCE_ADDRESS}
                   </span>

@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Clock, ArrowRight, Activity } from "lucide-react";
+import { Clock, ArrowRight, Activity, Zap, ZapOff } from "lucide-react";
 import { formatDistanceToNow, formatDistanceStrict } from "date-fns";
 import { uk } from "date-fns/locale";
 import { LocationWithEvents } from "@/hooks/use-locations";
@@ -54,65 +54,74 @@ export function LocationCard({ location }: LocationCardProps) {
   const recentPeriods = getRecentPeriods();
   
   return (
-    <div className="group bg-card hover:bg-gradient-to-br hover:from-card hover:to-primary/5 border border-border/50 hover:border-primary/20 rounded-2xl p-6 shadow-lg hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-xl bg-secondary/50 flex items-center justify-center text-lg font-bold font-display text-primary">
+    <div className="group bg-white hover:bg-gradient-to-br hover:from-white hover:to-primary/5 border border-border/40 hover:border-primary/30 rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full">
+      {/* Header */}
+      <div className="flex justify-between items-start gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-base sm:text-lg font-bold font-display text-primary shrink-0">
             {location.number}
           </div>
-          <div>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Група {location.group || "-"}</span>
-            <h3 className="font-bold text-foreground leading-tight line-clamp-1" title={location.address}>
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Група {location.group || "-"}
+            </span>
+            <h3 className="font-bold text-foreground leading-tight text-sm sm:text-base line-clamp-1" title={location.address}>
               {location.address}
             </h3>
           </div>
         </div>
         {latestEvent ? (
-          <StatusBadge isLightOn={isOnline} showIcon={false} />
+          <StatusBadge isLightOn={isOnline} showIcon={false} className="shrink-0" />
         ) : (
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md">Невідомо</span>
+          <span className="text-[10px] sm:text-xs bg-muted text-muted-foreground px-2 py-1 rounded-md shrink-0">Невідомо</span>
         )}
       </div>
 
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-3 sm:space-y-4">
         {/* Status Text */}
-        <div className="bg-secondary/30 rounded-xl p-3 border border-secondary">
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="w-4 h-4 text-primary" />
-            <span className="text-xs font-semibold text-muted-foreground">ПОТОЧНИЙ СТАН</span>
+        <div className="bg-gradient-to-br from-secondary/40 to-secondary/20 rounded-xl p-3 border border-secondary/50">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+            <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">Поточний стан</span>
           </div>
-          <p className="text-sm font-medium text-foreground">
+          <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">
             {location.currentStatusRaw || "Очікування даних..."}
           </p>
         </div>
 
-        <div className="rounded-xl border border-border/60 bg-white/70 p-3">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        {/* Recent Periods */}
+        <div className="rounded-xl border border-border/50 bg-white/80 p-3">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
             Останні 2 періоди
           </p>
           <div className="space-y-2">
             {recentPeriods.length > 0 ? (
               recentPeriods.map((period, index) => (
-                <div key={`${period.start.toISOString()}-${index}`} className="flex items-center justify-between text-xs">
-                  <span className={period.isLightOn ? "text-emerald-600" : "text-rose-500"}>
-                    {period.isLightOn ? "Світло" : "Немає"}
+                <div key={`${period.start.toISOString()}-${index}`} className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className={`flex items-center gap-1.5 font-medium ${period.isLightOn ? "text-emerald-600" : "text-rose-500"}`}>
+                    {period.isLightOn ? (
+                      <><Zap className="w-3.5 h-3.5" /> Світло</>
+                    ) : (
+                      <><ZapOff className="w-3.5 h-3.5" /> Немає</>
+                    )}
                   </span>
-                  <span className="text-muted-foreground">
+                  <span className="text-muted-foreground font-medium">
                     {formatDistanceStrict(period.start, period.end, { locale: uk })}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground">Недостатньо даних для підрахунку</p>
+              <p className="text-xs text-muted-foreground">Недостатньо даних</p>
             )}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Clock className="w-3.5 h-3.5" />
-          <span>
+      {/* Footer */}
+      <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-border/40 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="line-clamp-1">
             {location.lastScrapedAt 
               ? formatDistanceToNow(new Date(location.lastScrapedAt), { addSuffix: true, locale: uk }) 
               : "Ніколи"}
@@ -129,8 +138,12 @@ export function LocationCard({ location }: LocationCardProps) {
             })
           }
         >
-          <Button variant="ghost" size="sm" className="group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-            Деталі <ArrowRight className="ml-2 w-4 h-4" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm group-hover:text-primary group-hover:bg-primary/10 transition-colors"
+          >
+            Деталі <ArrowRight className="ml-1.5 sm:ml-2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
         </Link>
       </div>
