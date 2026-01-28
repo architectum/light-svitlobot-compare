@@ -359,11 +359,18 @@ export default function LocationDetails() {
                         recentPeriods.map((period, index) => {
                           const duration = formatDistanceStrict(period.start, period.end, { locale: uk });
                           const getPeriodText = () => {
-                            const isFirst = index === 0;
-                            if (period.isLightOn) {
-                              return isFirst ? `✅ Світло увімкнули ${duration} тому` : `✅ Світло було ${duration}`;
+                            // Text depends on current status (first item in list)
+                            const isCurrentOn = recentPeriods[0]?.isLightOn;
+                            if (isCurrentOn) {
+                              // Current period: light was turned ON, previous: light was OFF
+                              return index === 0 
+                                ? `✅ Світло увімкнули ${duration} тому`
+                                : `❌ Світла не було ${duration}`;
                             } else {
-                              return isFirst ? `❌ Світла не було ${duration}` : `❌ Світло вимкнули ${duration} тому`;
+                              // Current period: light was turned OFF, previous: light was ON
+                              return index === 0 
+                                ? `❌ Світло вимкнули ${duration} тому`
+                                : `✅ Світло було ${duration}`;
                             }
                           };
                           return (
