@@ -18,18 +18,22 @@
       ]
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/locations/([^/]+)/scan",
-      "dest": "/api/locations/[id]/scan.ts?id=$1"
+      "source": "/api/locations/:id/scan.ts",
+      "destination": "/api/locations/[id]/scan.ts?id=:id"
     },
     {
-      "src": "/api/scan-all",
-      "dest": "/api/scan-all.ts"
+      "source": "/api/locations/:id/scan",
+      "destination": "/api/locations/[id]/scan.ts?id=:id"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "source": "/api/scan-all.ts",
+      "destination": "/api/scan-all.ts"
+    },
+    {
+      "source": "/api/scan-all",
+      "destination": "/api/scan-all.ts"
     }
   ],
   "env": {
