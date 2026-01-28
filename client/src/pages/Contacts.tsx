@@ -32,7 +32,7 @@ const contactBlocks = [
   {
     icon: MessageCircle,
     title: "Telegram",
-    value: "notahumman",
+    value: "@notahumman",
   }
 ];
 
