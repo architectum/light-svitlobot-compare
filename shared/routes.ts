@@ -14,7 +14,7 @@ export const api = {
   locations: {
     scan: {
       method: 'POST' as const,
-      path: '/api/locations/:id/scan.ts',
+      path: '/api/locations/:id/scan',
       responses: {
         200: z.object({
           success: z.boolean(),
@@ -27,7 +27,7 @@ export const api = {
     },
     scanAll: {
       method: 'POST' as const,
-      path: '/api/scan-all.ts',
+      path: '/api/scan-all',
       responses: {
         200: z.object({
           success: z.boolean(),
