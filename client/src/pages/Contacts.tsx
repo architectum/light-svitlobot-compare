@@ -11,8 +11,8 @@ const contactBlocks = [
   },
   {
     icon: Briefcase,
-    title: "Позиції",
-    value: "Software Architect/Tech Lead/CTO (12 років в IT)",
+    title: "Професія",
+    value: "Software Architect/Tech Lead (12+ років)",
   },
   {
     icon: Award,
