@@ -443,10 +443,11 @@ export default function LocationDetails() {
                       <Tooltip
                         contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                         labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
-                        formatter={(value: number, name: string) => [
-                          value === 1 ? 'Є світло' : 'Немає світла',
-                          name === 'status' ? location.address : REFERENCE_ADDRESS
-                        ]}
+                        formatter={(value: number, name: string, props: any) => {
+                          const isCurrentLocation = props.dataKey === 'status';
+                          const label = isCurrentLocation ? location.address : `${REFERENCE_ADDRESS} (Еталон)`;
+                          return [value === 1 ? 'Є світло' : 'Немає світла', label];
+                        }}
                       />
                       {/* Reference layer */}
                       <Area
@@ -457,7 +458,7 @@ export default function LocationDetails() {
                         fillOpacity={0.15}
                         strokeWidth={1}
                         isAnimationActive={false}
-                        name={`${REFERENCE_ADDRESS} (Еталон)`}
+                        name="refStatus"
                       />
                       {/* Current location layer */}
                       <Area
@@ -467,7 +468,7 @@ export default function LocationDetails() {
                         fill="#2563eb"
                         fillOpacity={0.35}
                         strokeWidth={2}
-                        name="Поточна адреса"
+                        name="status"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
