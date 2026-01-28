@@ -54,11 +54,23 @@ export function LocationCard({ location }: LocationCardProps) {
   const recentPeriods = getRecentPeriods();
   
   return (
-    <div className="group bg-white hover:bg-gradient-to-br hover:from-white hover:to-primary/5 border border-border/40 hover:border-primary/30 rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col h-full">
+    <div className={`group relative border border-border/40 rounded-2xl p-4 sm:p-5 shadow-md transition-all duration-300 flex flex-col h-full ${
+      isOnline 
+        ? "bg-gradient-to-br from-amber-50/80 to-yellow-50/60 hover:from-amber-100/80 hover:to-yellow-100/60 border-amber-200/50 hover:border-amber-300/50 hover:shadow-xl hover:shadow-amber-500/20" 
+        : "bg-white/60 hover:bg-white/80 border-border/40 hover:border-border/60 hover:shadow-lg"
+    }`}>
+      {/* Light Glow Effect for Online */}
+      {isOnline && (
+        <div className="absolute inset-0 rounded-2xl bg-amber-400/10 blur-xl -z-10 animate-pulse" />
+      )}
       {/* Header */}
       <div className="flex justify-between items-start gap-3 mb-3 sm:mb-4">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center text-base sm:text-lg font-bold font-display text-primary shrink-0">
+          <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-base sm:text-lg font-bold font-display shrink-0 ${
+              isOnline 
+                ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/30"
+                : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500"
+            }`}>
             {location.number}
           </div>
           <div className="min-w-0 flex-1">
@@ -81,7 +93,7 @@ export function LocationCard({ location }: LocationCardProps) {
         {/* Status Text */}
         <div className="bg-gradient-to-br from-secondary/40 to-secondary/20 rounded-xl p-3 border border-secondary/50">
           <div className="flex items-center gap-2 mb-1.5">
-            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+            <Activity className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isOnline ? "text-amber-500" : "text-primary"}`} />
             <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">Поточний стан</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">
@@ -152,7 +164,11 @@ export function LocationCard({ location }: LocationCardProps) {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm group-hover:text-primary group-hover:bg-primary/10 transition-colors"
+            className={`h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm transition-colors ${
+              isOnline 
+                ? "group-hover:text-amber-600 group-hover:bg-amber-100/50" 
+                : "group-hover:text-primary group-hover:bg-primary/10"
+            }`}
           >
             Деталі <ArrowRight className="ml-1.5 sm:ml-2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
