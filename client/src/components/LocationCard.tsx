@@ -57,7 +57,7 @@ export function LocationCard({ location }: LocationCardProps) {
     <div className={`group relative border border-border/40 rounded-2xl p-4 sm:p-5 shadow-md transition-all duration-300 flex flex-col h-full ${
       isOnline 
         ? "bg-gradient-to-br from-amber-50/80 to-yellow-50/60 hover:from-amber-100/80 hover:to-yellow-100/60 border-amber-200/50 hover:border-amber-300/50 hover:shadow-xl hover:shadow-amber-500/20" 
-        : "bg-white/60 hover:bg-white/80 border-border/40 hover:border-border/60 hover:shadow-lg"
+        : "bg-white/60 hover:bg-gray-50 border-border/40 hover:border-border/60 hover:shadow-lg"
     }`}>
       {/* Light Glow Effect for Online */}
       {isOnline && (
@@ -69,7 +69,7 @@ export function LocationCard({ location }: LocationCardProps) {
           <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl flex items-center justify-center text-base sm:text-lg font-bold font-display shrink-0 ${
               isOnline 
                 ? "bg-gradient-to-br from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-500/30"
-                : "bg-gradient-to-br from-gray-200 to-gray-300 text-gray-500"
+                : "bg-gray-900 text-white shadow-lg"
             }`}>
             {location.number}
           </div>
@@ -167,7 +167,7 @@ export function LocationCard({ location }: LocationCardProps) {
             className={`h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm transition-colors ${
               isOnline 
                 ? "group-hover:text-amber-600 group-hover:bg-amber-100/50" 
-                : "group-hover:text-primary group-hover:bg-primary/10"
+                : "group-hover:text-foreground group-hover:bg-gray-100"
             }`}
           >
             Деталі <ArrowRight className="ml-1.5 sm:ml-2 w-3.5 h-3.5 sm:w-4 sm:h-4" />

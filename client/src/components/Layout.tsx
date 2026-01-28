@@ -3,6 +3,7 @@ import { Zap, Menu, X, BarChart2, Home, Mail } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { trackEvent } from "@/lib/analytics";
+import { BackToTop } from "./BackToTop";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -117,6 +118,9 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </footer>
+      
+      {/* Back to Top Button */}
+      <BackToTop />
     </div>
   );
 }
