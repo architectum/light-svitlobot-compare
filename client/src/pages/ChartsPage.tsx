@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/Layout";
 import { useLocations } from "@/hooks/use-locations";
 import {
@@ -11,9 +12,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore, startOfDay, addDays } from "date-fns";
 import { uk } from "date-fns/locale";
-import { Loader2 } from "lucide-react";
+import { Loader2, ExternalLink } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
 const NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/search";
@@ -66,6 +68,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lon: numb
 
 export default function ChartsPage() {
   const { data: locations, isLoading } = useLocations();
+  const [, setNavigate] = useLocation();
   const [geoPoints, setGeoPoints] = useState<Map<number, { lat: number; lon: number }>>(new Map());
 
   // Geocode all locations
@@ -262,7 +265,25 @@ export default function ChartsPage() {
         <CardHeader className="bg-gradient-to-r from-slate-50 to-white py-4">
           <CardTitle className="text-base font-semibold flex flex-wrap items-center justify-between gap-2">
             <span>{location.address} {location.group ? `(Група ${location.group})` : ""}</span>
-            {isMainRef && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Еталон</span>}
+            <div className="flex items-center gap-2">
+              {isMainRef && <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Еталон</span>}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  trackEvent("chart_details_click", {
+                    location_id: location.id,
+                    address: location.address,
+                  });
+                  setNavigate(`/location/${location.id}`);
+                }}
+                className="text-xs h-7 px-2 border-primary/30 text-primary hover:bg-primary/5"
+              >
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Деталі
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4">
