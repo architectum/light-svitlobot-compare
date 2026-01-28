@@ -356,16 +356,24 @@ export default function LocationDetails() {
                     </h3>
                     <div className="space-y-2">
                       {recentPeriods.length > 0 ? (
-                        recentPeriods.map((period, index) => (
-                          <div key={`${period.start.toISOString()}-${index}`} className="flex items-center justify-between text-sm">
-                            <span className={`font-medium ${period.isLightOn ? "text-emerald-600" : "text-rose-500"}`}>
-                              {period.isLightOn ? "🟢 Світло є" : "🔴 Світла немає"}
-                            </span>
-                            <span className="text-muted-foreground font-medium">
-                              {formatDistanceStrict(period.start, period.end, { locale: uk })}
-                            </span>
-                          </div>
-                        ))
+                        recentPeriods.map((period, index) => {
+                          const duration = formatDistanceStrict(period.start, period.end, { locale: uk });
+                          const getPeriodText = () => {
+                            const isFirst = index === 0;
+                            if (period.isLightOn) {
+                              return isFirst ? `✅ Світло увімкнули ${duration} тому` : `✅ Світло було ${duration}`;
+                            } else {
+                              return isFirst ? `❌ Світла не було ${duration}` : `❌ Світло вимкнули ${duration} тому`;
+                            }
+                          };
+                          return (
+                            <div key={`${period.start.toISOString()}-${index}`} className="text-sm">
+                              <span className={`font-medium ${period.isLightOn ? "text-emerald-600" : "text-rose-500"}`}>
+                                {getPeriodText()}
+                              </span>
+                            </div>
+                          );
+                        })
                       ) : (
                         <p className="text-sm text-muted-foreground">Недостатньо даних для підрахунку</p>
                       )}
