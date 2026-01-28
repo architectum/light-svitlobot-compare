@@ -5,6 +5,7 @@ import { useLocation, useLocations, useScanLocation } from "@/hooks/use-location
 import { EventTimeline } from "@/components/EventTimeline";
 import { LocationMap } from "@/components/LocationMap";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ComparisonStats } from "@/components/ComparisonStats";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Loader2, RefreshCw, ArrowLeft, ExternalLink, Calendar, Info, Activity, Download, BarChart3 } from "lucide-react";
@@ -420,52 +421,11 @@ export default function LocationDetails() {
               </CardContent>
 
               {/* Daily Statistics */}
-              <CardContent className="border-t bg-muted/20">
-                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide mb-4">
-                  Статистика по датам
-                </h3>
-                <div className="grid gap-4">
-                  {comparisonData.dailyStats.map((stat, idx) => (
-                    <div key={`stat-${idx}`} className="grid gap-2">
-                      <div className="font-semibold text-foreground">
-                        {format(stat.date, "EEEE, dd.MM.yyyy", { locale: uk })}
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
-                          <div className="text-xs uppercase tracking-wide text-blue-700 font-medium mb-2">
-                            {location.address}
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-rose-600 font-medium">🔴 Без світла:</span>
-                              <span className="ml-1 font-bold">{stat.location.hoursOff.toFixed(1)} год</span>
-                            </div>
-                            <div>
-                              <span className="text-emerald-600 font-medium">🟢 Зі світлом:</span>
-                              <span className="ml-1 font-bold">{stat.location.hoursOn.toFixed(1)} год</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="rounded-lg bg-orange-50 border border-orange-200 px-4 py-3">
-                          <div className="text-xs uppercase tracking-wide text-orange-700 font-medium mb-2">
-                            {REFERENCE_ADDRESS} (Еталон)
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            <div>
-                              <span className="text-rose-600 font-medium">🔴 Без світла:</span>
-                              <span className="ml-1 font-bold">{stat.reference.hoursOff.toFixed(1)} год</span>
-                            </div>
-                            <div>
-                              <span className="text-emerald-600 font-medium">🟢 Зі світлом:</span>
-                              <span className="ml-1 font-bold">{stat.reference.hoursOn.toFixed(1)} год</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
+              <ComparisonStats
+                dailyStats={comparisonData.dailyStats}
+                locationAddress={location.address}
+                referenceAddress={REFERENCE_ADDRESS}
+              />
             </Card>
           </div>
         )}

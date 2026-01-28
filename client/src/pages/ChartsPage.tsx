@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ComparisonStats, type DailyStat } from "@/components/ComparisonStats";
 import { format, subDays, startOfMinute, addMinutes, isAfter, isBefore, startOfDay, addDays } from "date-fns";
 import { uk } from "date-fns/locale";
 import { Loader2, ExternalLink } from "lucide-react";
@@ -248,7 +249,15 @@ export default function ChartsPage() {
 
     const referenceStats = chartData?.referenceStats ?? [];
 
-    const formatHours = (value: number) => value.toFixed(1);
+    // Transform stats to ComparisonStats format
+    const comparisonDailyStats: DailyStat[] = locationStats.map((stat, idx) => ({
+      date: stat.date,
+      location: { hoursOff: stat.hoursOff, hoursOn: stat.hoursOn },
+      reference: { 
+        hoursOff: referenceStats[idx]?.hoursOff ?? 0, 
+        hoursOn: referenceStats[idx]?.hoursOn ?? 0 
+      },
+    }));
 
     return (
       <Card
@@ -382,29 +391,11 @@ export default function ChartsPage() {
             })()}
           </div>
         </CardContent>
-        <CardContent className="border-t bg-muted/20">
-          <div className="grid gap-3 text-sm">
-            {locationStats.map((stat, idx) => (
-              <div key={`${location.id}-stat-${idx}`} className="grid gap-1">
-                <div className="font-semibold text-foreground">
-                  {format(stat.date, "dd.MM.yyyy", { locale: uk })}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-muted-foreground">
-                  <div className="rounded-md bg-background/80 px-3 py-2">
-                    <div className="text-xs uppercase tracking-wide">Поточна адреса</div>
-                    <div className="mt-1">Без світла: {formatHours(stat.hoursOff)} год</div>
-                    <div>Зі світлом: {formatHours(stat.hoursOn)} год</div>
-                  </div>
-                  <div className="rounded-md bg-background/80 px-3 py-2">
-                    <div className="text-xs uppercase tracking-wide">Еталонна адреса</div>
-                    <div className="mt-1">Без світла: {formatHours(referenceStats[idx]?.hoursOff ?? 0)} год</div>
-                    <div>Зі світлом: {formatHours(referenceStats[idx]?.hoursOn ?? 0)} год</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
+        <ComparisonStats
+          dailyStats={comparisonDailyStats}
+          locationAddress={location.address}
+          referenceAddress={REFERENCE_ADDRESS}
+        />
       </Card>
     );
   };
