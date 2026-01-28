@@ -11,7 +11,7 @@ interface LayoutProps {
 const navItems = [
   { href: "/", label: "Дашборд", icon: Home },
   { href: "/charts", label: "Порівняння", icon: BarChart2 },
-  { href: "/contacts", label: "Контакти", icon: Mail },
+  // { href: "/contacts", label: "Контакти", icon: Mail },
 ];
 
 export function Layout({ children }: LayoutProps) {
