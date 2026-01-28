@@ -44,7 +44,7 @@ export default function Contacts() {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Contact</p>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground">Contact Us</h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
-            We’re here to help with sales, support, and partnership inquiries.
+            Вам потрібно рішення для вашого бізнесу? Напишіть мені :)
           </p>
         </header>
 
@@ -69,20 +69,6 @@ export default function Contacts() {
           })}
         </div>
 
-        <Card className="border-border/60 shadow-sm bg-gradient-to-br from-white to-primary/5">
-          <CardContent className="p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-display font-bold text-foreground">Quick Response</h2>
-              <p className="text-muted-foreground mt-2 max-w-xl">
-                Prefer a quick response? Use the form below and we’ll get back within 1 business day.
-              </p>
-            </div>
-            <Button className="gap-2 px-6 py-5 text-base shadow-lg shadow-primary/20">
-              <Send className="h-4 w-4" />
-              Start a Request
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );
